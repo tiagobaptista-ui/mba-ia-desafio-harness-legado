@@ -1,6 +1,11 @@
 import { apiFetch, getToken } from './client'
 import { API_URL } from '../config/env'
-import type { TicketCategory, TicketPriority, TicketStatus, TriageStatus } from '../../../api/src/domain/ticket'
+
+// Tipos do contrato da API, mantidos no front: web/ não importa nada de api/ (gate G8).
+type TicketStatus = 'open' | 'in_progress' | 'resolved'
+export type TicketCategory = 'billing' | 'technical' | 'account' | 'other'
+export type TicketPriority = 'low' | 'medium' | 'high' | 'urgent'
+export type TriageStatus = 'pending' | 'done' | 'failed'
 
 export type Ticket = {
   id: string

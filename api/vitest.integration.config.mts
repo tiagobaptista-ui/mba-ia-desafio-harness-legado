@@ -1,8 +1,8 @@
+import { existsSync } from 'node:fs'
 import { defineConfig } from 'vitest/config'
 
-try {
-  process.loadEnvFile('.env')
-} catch {}
+// Sem .env (ex.: CI), valem as variáveis do ambiente.
+if (existsSync('.env')) process.loadEnvFile('.env')
 
 export default defineConfig({
   test: {
