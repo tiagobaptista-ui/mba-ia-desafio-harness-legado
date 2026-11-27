@@ -2,6 +2,8 @@
 //   G5  process.env só em api/src/config/; import.meta.env só em web/src/config/
 //   G11 (regra própria) nenhum endereço fixo (localhost, 127.0.0.1, 0.0.0.0, ::1, /tmp/) em
 //       api/src/ e web/src/ fora de config/: é o que impedia duas cópias de rodar juntas.
+//   G13 (regra própria) nenhum comentário de supressão (eslint-disable, @ts-ignore,
+//       @ts-expect-error, @ts-nocheck) em api/src/ e web/src/: violação se corrige, não se cala.
 // Uso: node scripts/gates/codigo.mjs  → imprime JSON [{ id, arquivo, linha, mensagem }]
 import fs from 'node:fs'
 import path from 'node:path'
@@ -14,6 +16,31 @@ const ts = createRequire(import.meta.url)('typescript')
 const EXTENSOES = /\.(ts|tsx|mts|cts|js|jsx|mjs|cjs)$/
 const MODULOS_PROCESS = new Set(['process', 'node:process'])
 const ENDERECO_FIXO = /localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1\]|(^|[^\w.])\/tmp\//
+const SUPRESSAO = /eslint-disable|@ts-ignore|@ts-expect-error|@ts-nocheck/
+
+// Só olha comentários de verdade: percorre todos os tokens da árvore e pede ao TypeScript os
+// comentários antes e depois de cada um. Texto dentro de string, template ou regex não conta.
+function supressoes(arquivo, texto, fonte) {
+  const achados = []
+  const vistos = new Set()
+  const olhar = (pos) => {
+    const faixas = [...(ts.getLeadingCommentRanges(texto, pos) ?? []), ...(ts.getTrailingCommentRanges(texto, pos) ?? [])]
+    for (const faixa of faixas) {
+      if (vistos.has(faixa.pos)) continue
+      vistos.add(faixa.pos)
+      const trecho = texto.slice(faixa.pos, faixa.end).match(SUPRESSAO)
+      if (trecho) {
+        const linha = fonte.getLineAndCharacterOfPosition(faixa.pos).line + 1
+        achados.push({ id: 'G13', arquivo, linha, mensagem: `comentário de supressão (${trecho[0]}): corrija a violação` })
+      }
+    }
+  }
+  ;(function andar(no) {
+    olhar(no.pos)
+    for (const filho of no.getChildren(fonte)) andar(filho)
+  })(fonte)
+  return achados
+}
 
 function arquivos(pasta) {
   const abs = path.join(RAIZ, pasta)
@@ -44,7 +71,7 @@ function ehProcess(no, nomesDeProcess) {
 function analisar(arquivo, { procurarProcessEnv, procurarImportMetaEnv, procurarEndereco }) {
   const texto = fs.readFileSync(path.join(RAIZ, arquivo), 'utf8')
   const fonte = ts.createSourceFile(arquivo, texto, ts.ScriptTarget.Latest, true)
-  const achados = []
+  const achados = supressoes(arquivo, texto, fonte)
   const nomesDeProcess = new Set(['process'])
   const linha = (no) => fonte.getLineAndCharacterOfPosition(no.getStart(fonte)).line + 1
   const achar = (id, no, mensagem) => achados.push({ id, arquivo, linha: linha(no), mensagem })

@@ -13,6 +13,7 @@
 //   G10 código morto     knip em api/ e web/
 //   G11 sem endereço fixo (regra própria) scripts/gates/codigo.mjs
 //   G12 prisma só em repositories (regra própria) dependency-cruiser
+//   G13 sem comentário de supressão (regra própria) scripts/gates/codigo.mjs
 import { spawn } from 'node:child_process'
 import fs from 'node:fs'
 import os from 'node:os'
@@ -181,7 +182,7 @@ const VERIFICACOES = [
   { ids: ['G2'], nome: 'lint (eslint)', rodar: lint },
   { ids: ['G3'], nome: 'testes unitários da api (vitest)', rodar: testes },
   { ids: ['G4', 'G6', 'G7', 'G8', 'G9', 'G12'], nome: 'regras de import (dependency-cruiser)', rodar: imports },
-  { ids: ['G5', 'G11'], nome: 'env e endereços fixos (scripts/gates/codigo.mjs)', rodar: codigo },
+  { ids: ['G5', 'G11', 'G13'], nome: 'env, endereços fixos e supressões (scripts/gates/codigo.mjs)', rodar: codigo },
   { ids: ['G10'], nome: 'código morto da api (knip)', rodar: () => codigoMorto('api') },
   { ids: ['G10'], nome: 'código morto do web (knip)', rodar: () => codigoMorto('web') },
 ]

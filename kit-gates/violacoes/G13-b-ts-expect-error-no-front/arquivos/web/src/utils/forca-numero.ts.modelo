@@ -1,0 +1,5 @@
+export function forcarNumero(): number {
+  // @ts-expect-error o texto vira número na marra
+  const total: number = 'dez'
+  return total
+}
