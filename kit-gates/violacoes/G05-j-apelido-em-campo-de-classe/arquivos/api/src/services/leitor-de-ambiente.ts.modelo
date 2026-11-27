@@ -1,0 +1,7 @@
+export class LeitorDeAmbiente {
+  private readonly proc = process
+
+  modoDaIa(): string {
+    return this.proc.env.AI_MODE ?? 'fake'
+  }
+}

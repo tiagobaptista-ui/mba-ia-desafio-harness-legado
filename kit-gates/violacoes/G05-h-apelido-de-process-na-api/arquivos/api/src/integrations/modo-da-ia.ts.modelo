@@ -1,0 +1,3 @@
+const proc = process
+
+export const modoDaIa = proc.env.AI_MODE ?? 'fake'

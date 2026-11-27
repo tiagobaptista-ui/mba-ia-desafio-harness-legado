@@ -35,6 +35,21 @@ As únicas exceções são as que a própria regra define: `config/` na G5 e na 
 
 O TypeScript apaga `import type` na compilação. Ferramentas que leem o JavaScript gerado (ou o grafo do bundler) não enxergam esses imports, e a G6 e a G8 deixariam a violação passar. O dependency-cruiser roda com `tsPreCompilationDeps: true`: ele lê o TypeScript antes da compilação e conta `import type`, `import { type X }`, `import('x').T`, `/// <reference types>`, `import x = require()`, `require()`, `import()` dinâmico e `export ... from`. As violações extras do kit (`G06-c`, `G06-d`, `G08-b` e `G09-d`) cobrem esses casos.
 
+### Formas de ler o ambiente (G5)
+
+O `scripts/gates/codigo.mjs` lê a árvore sintática, não o texto. Na API, ele acusa a leitura de `env`, por ponto, colchetes, `?.` ou desestruturação, em qualquer expressão que seja `process`:
+
+- **O global:** `process`, `globalThis.process` ou `global.process`, inclusive com chave entre colchetes ou guardada numa constante (`process['env']`, `process[CHAVE]`).
+- **O módulo:** `import { env } from 'node:process'`, import default, namespace ou `{ default as p }`, `import p = require('process')`, `require('node:process')` e `await import('node:process')`.
+- **Um apelido:** variável, parâmetro com valor padrão, atribuição (inclusive `??=`), campo de classe (`this.proc.env`), propriedade de objeto e desestruturação (`const { process: p } = globalThis`), inclusive apelido de apelido.
+- **Um envoltório:** parênteses, `as`, `satisfies`, `!`, `??`, `||`, `&&`, ternário e vírgula.
+
+No front vale o mesmo para `import.meta`.
+
+Os apelidos valem para o arquivo inteiro, sem olhar o escopo. Se o mesmo nome guarda `process` num bloco e outro objeto em outro, o `.env` do segundo também acusa. A regra erra para o lado de barrar; nesse caso, renomeie a variável.
+
+As violações `G05-c` a `G05-k` do kit cobrem colchetes, desestruturação, import do módulo, `require`, `globalThis` com cast e apelido em variável e em campo de classe.
+
 ### Por que as regras próprias existem
 
 - **G11, sem endereço fixo.** O Balcão "achava que era a única cópia no mundo". O CORS estava travado em `http://localhost:5173`, o front caía em `http://localhost:4000` e os anexos iam para `/tmp/balcao/uploads`. Com duas worktrees no ar, o front da segunda falava com a API da primeira e os anexos das duas se misturavam. Hoje todo endereço vem de `config/`, que lê o `.env` gerado pelo `npm run up` de cada cópia. A G11 impede que um endereço fixo volte a aparecer em qualquer outro lugar.
@@ -57,7 +72,7 @@ bash kit-gates/verificar.sh . "npm run gates" G12
 bash kit-gates/verificar.sh . "npm run gates" G13
 ```
 
-Sem o argumento final, o kit roda todas as 49 violações (as 19 originais e 30 extras), o que leva uns 4 minutos. Para aplicar um exemplo à mão, copie o `.modelo` para o caminho indicado sem a extensão, rode `npm run gates` e apague o arquivo depois:
+Sem o argumento final, o kit roda todas as 54 violações (as 19 originais e 35 extras), o que leva uns 5 minutos. Para aplicar um exemplo à mão, copie o `.modelo` para o caminho indicado sem a extensão, rode `npm run gates` e apague o arquivo depois:
 
 ```bash
 cp kit-gates/violacoes/G11-a-cors-com-origem-fixa/arquivos/api/src/http/origem-front.ts.modelo api/src/http/origem-front.ts
@@ -72,6 +87,8 @@ rm api/src/http/origem-front.ts
 ```
 
 Sempre que mudar a configuração de uma ferramenta de gate, rode o kit inteiro de novo: uma opção errada pode desligar uma regra em silêncio, e os gates continuam verdes.
+
+Depois de criar ou mudar uma regra, teste também com violações escritas por quem não leu a implementação, por exemplo um subagente que lê só a regra e o formato do kit. Quem escreve o gate tende a testar só as formas que já sabe pegar. Toda forma nova que passar vira uma violação versionada em `kit-gates/violacoes/`.
 
 ## Como corrigir cada regra
 

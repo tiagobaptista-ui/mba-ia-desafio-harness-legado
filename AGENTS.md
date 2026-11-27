@@ -19,7 +19,7 @@ Rode tudo na raiz do repositório.
 - `npm run gates`: todos, em cerca de 5 s. `npm run gates -- G2 G10`: só alguns.
 - A saída termina com uma linha por violação: `<regra> <arquivo> <detalhe>`. Corrija a causa; nunca cale (G13).
 - Regras, ferramentas e como corrigir cada uma: [docs/gates.md](docs/gates.md).
-- Mexeu na configuração de um gate? Rode `bash kit-gates/verificar.sh . "npm run gates"` (exige `git status` limpo).
+- Mexeu num gate? Rode `bash kit-gates/verificar.sh . "npm run gates"` (exige `git status` limpo) e teste formas que você não escreveu ([docs/gates.md](docs/gates.md#como-aplicar-os-exemplos-de-violação)).
 
 ## Camadas da API (`api/src/`): http → services → repositories → Prisma
 
