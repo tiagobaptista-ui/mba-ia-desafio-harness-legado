@@ -37,7 +37,18 @@ O TypeScript apaga `import type` na compilação. Ferramentas que leem o JavaScr
 
 ### Formas de ler o ambiente (G5)
 
-O `scripts/gates/codigo.mjs` lê a árvore sintática, não o texto, e segue a variável até a origem. Ele reconhece `process.env`, `process['env']`, `process?.env`, `globalThis.process.env`, `const { env } = process`, `import { env } from 'node:process'`, `import.meta.env` e `import.meta['env']`. Também reconhece os casts, como `(globalThis.process as NodeJS.Process).env`, e os apelidos, inclusive apelido de apelido: `const proc = process; proc.env` e `const meta = import.meta; meta.env`. As violações `G05-c` a `G05-i` do kit cobrem esses casos.
+O `scripts/gates/codigo.mjs` lê a árvore sintática, não o texto. Na API, ele acusa a leitura de `env`, por ponto, colchetes, `?.` ou desestruturação, em qualquer expressão que seja `process`:
+
+- **O global:** `process`, `globalThis.process` ou `global.process`, inclusive com chave entre colchetes ou guardada numa constante (`process['env']`, `process[CHAVE]`).
+- **O módulo:** `import { env } from 'node:process'`, import default, namespace ou `{ default as p }`, `import p = require('process')`, `require('node:process')` e `await import('node:process')`.
+- **Um apelido:** variável, parâmetro com valor padrão, atribuição (inclusive `??=`), campo de classe (`this.proc.env`), propriedade de objeto e desestruturação (`const { process: p } = globalThis`), inclusive apelido de apelido.
+- **Um envoltório:** parênteses, `as`, `satisfies`, `!`, `??`, `||`, `&&`, ternário e vírgula.
+
+No front vale o mesmo para `import.meta`.
+
+Os apelidos valem para o arquivo inteiro, sem olhar o escopo. Se o mesmo nome guarda `process` num bloco e outro objeto em outro, o `.env` do segundo também acusa. A regra erra para o lado de barrar; nesse caso, renomeie a variável.
+
+As violações `G05-c` a `G05-k` do kit cobrem colchetes, desestruturação, import do módulo, `require`, `globalThis` com cast e apelido em variável e em campo de classe.
 
 ### Por que as regras próprias existem
 
@@ -61,7 +72,7 @@ bash kit-gates/verificar.sh . "npm run gates" G12
 bash kit-gates/verificar.sh . "npm run gates" G13
 ```
 
-Sem o argumento final, o kit roda todas as 52 violações (as 19 originais e 33 extras), o que leva uns 5 minutos. Para aplicar um exemplo à mão, copie o `.modelo` para o caminho indicado sem a extensão, rode `npm run gates` e apague o arquivo depois:
+Sem o argumento final, o kit roda todas as 54 violações (as 19 originais e 35 extras), o que leva uns 5 minutos. Para aplicar um exemplo à mão, copie o `.modelo` para o caminho indicado sem a extensão, rode `npm run gates` e apague o arquivo depois:
 
 ```bash
 cp kit-gates/violacoes/G11-a-cors-com-origem-fixa/arquivos/api/src/http/origem-front.ts.modelo api/src/http/origem-front.ts
