@@ -41,4 +41,4 @@ Formato: o que aconteceu, por que passou, a mudança no harness e o commit que a
 - O `npm run up` instala com `npm ci`, que respeita o lockfile.
 - `AGENTS.md` e `docs/gates.md` (na correção da G10) mandam usar o script e nunca `npm install` ou `npm uninstall`.
 
-**Commit:** `2fcab9d` (script). A regra no `AGENTS.md` está no commit da documentação para agentes.
+**Commit:** `2fcab9d` (script). A regra no `AGENTS.md` veio em `36c668b`.
