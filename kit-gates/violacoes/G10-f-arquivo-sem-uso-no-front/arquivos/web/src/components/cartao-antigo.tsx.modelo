@@ -1,0 +1,3 @@
+export default function CartaoAntigo({ titulo }: { titulo: string }) {
+  return <div className="card">{titulo}</div>
+}

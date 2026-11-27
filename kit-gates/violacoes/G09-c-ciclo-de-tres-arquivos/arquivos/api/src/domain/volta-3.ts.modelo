@@ -1,0 +1,3 @@
+import { um } from './volta-1'
+
+export const tres = (): number => (Math.random() > 2 ? um() : 0)

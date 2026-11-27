@@ -1,0 +1,4 @@
+export function Contador() {
+  const total: number = 'muitos'
+  return <span>{total}</span>
+}

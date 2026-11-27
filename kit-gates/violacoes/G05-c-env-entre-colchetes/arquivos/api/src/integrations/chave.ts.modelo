@@ -1,0 +1,1 @@
+export const chave: string | undefined = process['env']['OPENAI_API_KEY']

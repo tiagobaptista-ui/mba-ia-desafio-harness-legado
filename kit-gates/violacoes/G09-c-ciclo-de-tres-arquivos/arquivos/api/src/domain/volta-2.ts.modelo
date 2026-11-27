@@ -1,0 +1,3 @@
+import { tres } from './volta-3'
+
+export const dois = (): number => tres() + 1

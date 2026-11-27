@@ -1,0 +1,8 @@
+import { describe, expect, it } from 'vitest'
+import { prazo } from './prazo'
+
+describe('prazo', () => {
+  it('converte horas em minutos', () => {
+    expect(prazo(2)).toBe(120)
+  })
+})

@@ -1,0 +1,3 @@
+import type { NoB } from './no-b'
+
+export type NoA = { proximo?: NoB }

@@ -1,0 +1,7 @@
+import { PrismaClient } from '@prisma/client'
+
+const banco = new PrismaClient()
+
+export async function limpar(): Promise<number> {
+  return banco.ticket.count()
+}

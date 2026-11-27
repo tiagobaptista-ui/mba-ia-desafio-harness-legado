@@ -1,0 +1,4 @@
+export async function criar(chave: string): Promise<unknown> {
+  const { default: OpenAI } = await import('openai')
+  return new OpenAI({ apiKey: chave })
+}

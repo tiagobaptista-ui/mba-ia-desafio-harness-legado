@@ -1,0 +1,3 @@
+import { requireRole } from '../http/middlewares/auth'
+
+export const somenteAdmin = requireRole('admin')

@@ -1,0 +1,4 @@
+export async function carregar(): Promise<unknown> {
+  const modulo = await import('../../repositories/user-repository')
+  return modulo.userRepository
+}

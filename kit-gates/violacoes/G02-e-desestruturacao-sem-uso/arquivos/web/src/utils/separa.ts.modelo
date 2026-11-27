@@ -1,0 +1,4 @@
+export function separar(par: { a: number; b: number }): number {
+  const { a, b } = par
+  return a
+}

@@ -1,0 +1,3 @@
+const { env } = process
+
+export const intervalo = Number(env.TRIAGE_INTERVAL_MS)

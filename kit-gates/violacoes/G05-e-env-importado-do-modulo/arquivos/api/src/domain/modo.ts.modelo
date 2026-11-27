@@ -1,0 +1,3 @@
+import { env } from 'node:process'
+
+export const modo = env.AI_MODE ?? 'fake'

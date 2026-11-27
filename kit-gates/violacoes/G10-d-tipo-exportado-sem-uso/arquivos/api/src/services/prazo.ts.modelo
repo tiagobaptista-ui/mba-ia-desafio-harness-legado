@@ -1,0 +1,5 @@
+export type OpcoesDoPrazo = { horas: number }
+
+export function prazo(horas: number): number {
+  return horas * 60
+}

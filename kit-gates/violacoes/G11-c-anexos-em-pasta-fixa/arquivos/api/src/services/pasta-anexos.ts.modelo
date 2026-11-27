@@ -1,0 +1,3 @@
+import path from 'path'
+
+export const pastaAnexos = path.join('/tmp/balcao', 'uploads')

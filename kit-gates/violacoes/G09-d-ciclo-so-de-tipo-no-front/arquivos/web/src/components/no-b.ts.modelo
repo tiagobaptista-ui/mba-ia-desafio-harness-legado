@@ -1,0 +1,3 @@
+import type { NoA } from './no-a'
+
+export type NoB = { anterior?: NoA }

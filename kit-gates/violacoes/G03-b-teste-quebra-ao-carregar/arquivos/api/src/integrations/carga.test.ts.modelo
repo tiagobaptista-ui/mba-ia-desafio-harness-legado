@@ -1,0 +1,9 @@
+import { describe, expect, it } from 'vitest'
+
+const config = JSON.parse('{quebrado')
+
+describe('carga', () => {
+  it('lê a config', () => {
+    expect(config).toBeDefined()
+  })
+})
