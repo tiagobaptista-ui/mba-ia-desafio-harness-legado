@@ -2,11 +2,11 @@
 # Pre-commit do Balcão: roda os gates e bloqueia o commit se qualquer um falhar.
 #   G1  tipos  -> tsc --noEmit em api/ e web/
 #   G2  lint   -> eslint em api/ e web/ com --max-warnings 0
-#   G3..G12    -> testes unitários, regras de camada, env, código morto e as regras próprias
+#   G3..G13    -> testes unitários, regras de camada, env, código morto e as regras próprias
 # Fica ativo em todo clone e worktree depois de `npm run up` (git config core.hooksPath .githooks).
 # A lista de regras e ferramentas está em docs/gates.md.
 
-echo "pre-commit: rodando os gates (G1 tipos/tsc, G2 lint/eslint, G3-G12)..."
+echo "pre-commit: rodando os gates (G1 tipos/tsc, G2 lint/eslint, G3-G13)..."
 if ! node scripts/gates.mjs; then
   echo ""
   echo "pre-commit: commit bloqueado. Corrija as violações listadas acima e tente de novo."

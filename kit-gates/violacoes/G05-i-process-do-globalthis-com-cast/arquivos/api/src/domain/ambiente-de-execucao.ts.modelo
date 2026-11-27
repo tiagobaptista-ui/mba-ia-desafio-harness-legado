@@ -1,0 +1,5 @@
+const ambiente = (globalThis.process as NodeJS.Process).env
+
+export function emProducao(): boolean {
+  return ambiente.NODE_ENV === 'production'
+}

@@ -1,5 +1,6 @@
 // Gates que olham a árvore sintática do código (TypeScript compiler API), não os imports:
 //   G5  process.env só em api/src/config/; import.meta.env só em web/src/config/
+//       (inclusive por apelido: const proc = process; proc.env / const meta = import.meta; meta.env)
 //   G11 (regra própria) nenhum endereço fixo (localhost, 127.0.0.1, 0.0.0.0, ::1, /tmp/) em
 //       api/src/ e web/src/ fora de config/: é o que impedia duas cópias de rodar juntas.
 //   G13 (regra própria) nenhum comentário de supressão (eslint-disable, @ts-ignore,
@@ -58,14 +59,64 @@ function nomeDaPropriedade(no) {
   return null
 }
 
-function ehImportMeta(no) {
+// Tira parênteses, `as`, `satisfies`, `!` e `<T>x`: `(process as NodeJS.Process).env` continua sendo process.env.
+function semEnvoltorio(no) {
+  while (
+    ts.isParenthesizedExpression(no) ||
+    ts.isAsExpression(no) ||
+    ts.isSatisfiesExpression(no) ||
+    ts.isNonNullExpression(no) ||
+    ts.isTypeAssertionExpression(no)
+  ) {
+    no = no.expression
+  }
+  return no
+}
+
+// `import.meta` ou um apelido dele (`const meta = import.meta`).
+function ehImportMeta(no, apelidos) {
+  no = semEnvoltorio(no)
+  if (ts.isIdentifier(no)) return apelidos.has(no.text)
   return ts.isMetaProperty(no) && no.keywordToken === ts.SyntaxKind.ImportKeyword && no.name.text === 'meta'
 }
 
-// `process`, `globalThis.process`, `global.process` ou um nome importado do módulo process.
+// `process`, `globalThis.process`, `global.process`, um nome importado do módulo process
+// ou um apelido de qualquer um deles (`const proc = process`).
 function ehProcess(no, nomesDeProcess) {
+  no = semEnvoltorio(no)
   if (ts.isIdentifier(no)) return nomesDeProcess.has(no.text)
-  return nomeDaPropriedade(no) === 'process' && ts.isIdentifier(no.expression) && ['globalThis', 'global'].includes(no.expression.text)
+  if (nomeDaPropriedade(no) !== 'process') return false
+  const dono = semEnvoltorio(no.expression)
+  return ts.isIdentifier(dono) && ['globalThis', 'global'].includes(dono.text)
+}
+
+// Nomes que recebem process ou import.meta (`const p = process`, `m = import.meta`, apelido de
+// apelido). Repete até não aparecer nome novo, para não depender da ordem das declarações.
+function marcarApelidos(fonte, nomesDeProcess, apelidosDeImportMeta) {
+  let mudou = true
+  while (mudou) {
+    mudou = false
+    ts.forEachChild(fonte, function apelidar(no) {
+      let nome = null
+      let valor = null
+      if (ts.isVariableDeclaration(no) && ts.isIdentifier(no.name) && no.initializer) {
+        nome = no.name.text
+        valor = no.initializer
+      } else if (ts.isBinaryExpression(no) && no.operatorToken.kind === ts.SyntaxKind.EqualsToken && ts.isIdentifier(no.left)) {
+        nome = no.left.text
+        valor = no.right
+      }
+      if (nome && !nomesDeProcess.has(nome) && ehProcess(valor, nomesDeProcess)) {
+        nomesDeProcess.add(nome)
+        mudou = true
+      }
+      if (nome && !apelidosDeImportMeta.has(nome) && ehImportMeta(valor, apelidosDeImportMeta)) {
+        apelidosDeImportMeta.add(nome)
+        mudou = true
+      }
+      ts.forEachChild(no, apelidar)
+    })
+  }
 }
 
 function analisar(arquivo, { procurarProcessEnv, procurarImportMetaEnv, procurarEndereco }) {
@@ -104,19 +155,21 @@ function analisar(arquivo, { procurarProcessEnv, procurarImportMetaEnv, procurar
     }
     ts.forEachChild(no, marcar)
   })
+  const apelidosDeImportMeta = new Set()
+  marcarApelidos(fonte, nomesDeProcess, apelidosDeImportMeta)
 
   ts.forEachChild(fonte, function visitar(no) {
     const prop = nomeDaPropriedade(no)
     if (procurarProcessEnv && prop === 'env' && ehProcess(no.expression, nomesDeProcess)) {
       achar('G5', no, 'lê process.env fora de api/src/config/')
     }
-    if (procurarImportMetaEnv && prop === 'env' && ehImportMeta(no.expression)) {
+    if (procurarImportMetaEnv && prop === 'env' && ehImportMeta(no.expression, apelidosDeImportMeta)) {
       achar('G5', no, 'lê import.meta.env fora de web/src/config/')
     }
-    // const { env } = process  /  const { env } = import.meta
+    // const { env } = process  /  const { env } = import.meta (ou de um apelido deles)
     if (ts.isVariableDeclaration(no) && ts.isObjectBindingPattern(no.name) && no.initializer) {
       const deProcess = procurarProcessEnv && ehProcess(no.initializer, nomesDeProcess)
-      const deImportMeta = procurarImportMetaEnv && ehImportMeta(no.initializer)
+      const deImportMeta = procurarImportMetaEnv && ehImportMeta(no.initializer, apelidosDeImportMeta)
       if (deProcess || deImportMeta) {
         for (const el of no.name.elements) {
           const nome = el.propertyName ?? el.name

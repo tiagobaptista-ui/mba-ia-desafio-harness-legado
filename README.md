@@ -132,7 +132,7 @@ Por padrão a API usa o modo fake (`AI_MODE=fake`), que classifica os chamados p
 | G12 | **Própria:** em `api/src/`, só `repositories/` importa `@prisma/client` | dependency-cruiser |
 | G13 | **Própria:** nenhum `eslint-disable`, `@ts-ignore`, `@ts-expect-error` ou `@ts-nocheck` em `api/src/` e `web/src/` | `scripts/gates/codigo.mjs` |
 
-O `scripts/gates/codigo.mjs` lê a árvore sintática do TypeScript, então pega `process.env`, `process['env']`, `const { env } = process`, `import { env } from 'node:process'` e `import.meta['env']`. O dependency-cruiser roda com `tsPreCompilationDeps: true` para contar também os imports que só existem em tipo. Motivação de cada regra própria e como corrigir cada violação: [docs/gates.md](docs/gates.md).
+O `scripts/gates/codigo.mjs` lê a árvore sintática do TypeScript, então pega `process.env`, `process['env']`, `const { env } = process`, `import { env } from 'node:process'`, `import.meta['env']` e os apelidos (`const proc = process; proc.env`, `const meta = import.meta; meta.env`). O dependency-cruiser roda com `tsPreCompilationDeps: true` para contar também os imports que só existem em tipo. Motivação de cada regra própria e como corrigir cada violação: [docs/gates.md](docs/gates.md).
 
 ### Exemplos de violação das regras próprias
 
@@ -152,7 +152,7 @@ bash kit-gates/verificar.sh . "npm run gates" G13
 
 Para aplicar à mão, copie um `.modelo` para o mesmo caminho sem a extensão e rode `npm run gates`. Por exemplo, `kit-gates/violacoes/G11-a-cors-com-origem-fixa/arquivos/api/src/http/origem-front.ts.modelo` vai para `api/src/http/origem-front.ts`. Apague o arquivo depois.
 
-O kit também traz 27 variações das invariantes G1 a G10, com outras formas de escrever o mesmo erro (env entre colchetes, tipo inline do Express, reexport de repositório, ciclo de três arquivos, ciclo só de tipo…). Sem o argumento final, ele roda as 49 violações em uns 4 minutos.
+O kit também traz 25 variações das invariantes G1 a G10, com outras formas de escrever o mesmo erro (env entre colchetes, apelido de `process`, tipo inline do Express, reexport de repositório, ciclo de três arquivos, ciclo só de tipo…). Sem o argumento final, ele roda as 52 violações em uns 5 minutos.
 
 ## Decisões
 
