@@ -141,7 +141,7 @@ async function main() {
   gravarEnv(path.join(API, '.env'), path.join(API, '.env.example'), envApi)
   gravarEnv(path.join(WEB, '.env.local'), null, { VITE_API_URL: apiUrl })
 
-  log(`subindo o Postgres (projeto ${id.projetoCompose}, porta ${portas.db})`)
+  log(`subindo o Postgres (projeto ${id.projetoCompose}, porta ${portas.db}; na primeira vez o Docker baixa a imagem postgres:16)`)
   const envCompose = { BALCAO_DB_PORT: String(portas.db), BALCAO_DB_NAME: id.banco }
   compose(id, ['up', '-d', '--wait', 'db'], { env: envCompose, silencioso: true })
 
