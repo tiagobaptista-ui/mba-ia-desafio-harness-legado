@@ -1,3 +1,6 @@
 node_modules
 .env
+.env.local
 dist
+# estado, logs e anexos de cada cópia, criados por npm run up
+.balcao/

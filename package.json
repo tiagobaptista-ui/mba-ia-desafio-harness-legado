@@ -1,0 +1,23 @@
+{
+  "name": "balcao-harness",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Comandos de ambiente e gates do Balcão (api/ e web/ têm os próprios package.json)",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "up": "node scripts/up.mjs",
+    "down": "node scripts/down.mjs",
+    "gates": "node scripts/gates.mjs"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "dependency-cruiser": "^17.4.3",
+    "eslint": "^10.15.0",
+    "knip": "^6.48.0",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.74.0"
+  }
+}

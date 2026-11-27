@@ -11,7 +11,8 @@
     "worker": "tsx --env-file=.env src/jobs/triage-worker.ts",
     "seed": "tsx --env-file=.env prisma/seed.ts",
     "test": "vitest run",
-    "test:integration": "vitest run --config vitest.integration.config.mts"
+    "test:integration": "vitest run --config vitest.integration.config.mts",
+    "migrate": "prisma migrate deploy"
   },
   "dependencies": {
     "@prisma/client": "^6.19.3",
