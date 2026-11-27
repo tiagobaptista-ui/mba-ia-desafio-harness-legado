@@ -42,3 +42,23 @@ Formato: o que aconteceu, por que passou, a mudança no harness e o commit que a
 - `AGENTS.md` e `docs/gates.md` (na correção da G10) mandam usar o script e nunca `npm install` ou `npm uninstall`.
 
 **Commit:** `2fcab9d` (script). A regra no `AGENTS.md` veio em `36c668b`.
+
+---
+
+## 4. A G5 deixava passar apelido de `process` e de `import.meta`
+
+**O que aconteceu.** O agente escreveu o verificador da G5 sobre a árvore sintática e o testou com as violações do kit e com variações que ele mesmo escreveu (env entre colchetes, desestruturação, import de `node:process`). Todas foram barradas, e ele deu a regra por fechada. No teste de ponta a ponta, um subagente escreveu 30 violações novas sem ler a implementação dos gates, e uma delas passou: `const meta = import.meta` seguido de `meta.env.MODE` num componente do front. Na API, `const proc = process; proc.env.AI_MODE` e `(globalThis.process as NodeJS.Process).env` também passavam. A primeira correção seguiu só `const` e atribuição simples. Uma revisão de código achou mais formas que ainda escapavam: parâmetro com valor padrão, campo de classe (`this.proc.env`), `require('node:process')`, `process[CHAVE]` e `globalThis.process ?? {}`.
+
+**Por que passou.** Quem escreveu a regra também escreveu os testes dela e testou só as formas que já sabia pegar. O corretor usa justamente "outras formas de escrever o mesmo erro", e nada no harness pedia teste com violações escritas sem conhecer a implementação.
+
+**Mudança no harness.**
+- `scripts/gates/codigo.mjs` segue o valor até `process` ou `import.meta`:
+  - apelido em variável, parâmetro, campo, propriedade de objeto e desestruturação;
+  - `require` e `import()` do módulo;
+  - chave guardada em constante;
+  - casts e `??`, `||` e ternário.
+- O kit ganhou as violações `G05-g` a `G05-k`, com as formas que passavam.
+- `docs/gates.md` lista exatamente o que a G5 reconhece. Também manda testar regra nova ou alterada com violações escritas por quem não leu a implementação e versionar no kit toda forma que passar.
+- O `AGENTS.md` manda testar formas que o agente não escreveu sempre que ele mexer num gate.
+
+**Commits:** `3907ff4` (primeira correção) e `be4395b` (correções da revisão). A linha no `AGENTS.md` veio junto com este registro.
